@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dólar en Tiempo Real</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-dark text-white">
+
+<div class="container mt-5">
+
+  <h1 class="text-center mb-4">💲 Monitor del Dólar</h1>
+
+  <!-- CARD PRINCIPAL -->
+  <div class="card bg-secondary text-center mb-4">
+    <div class="card-body">
+      <h2 id="valor">Cargando...</h2>
+      <p id="fecha"></p>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="card bg-secondary">
+    <div class="card-body">
+      <h4>📊 Historial reciente</h4>
+      <ul id="historial" class="list-group list-group-flush"></ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+const API = "http://192.168.40.24:3000/api/dolar";
+
+// ====== ÚLTIMO VALOR ======
+async function obtenerUltimo() {
+  const res = await fetch(API + "/latest");
+  const data = await res.json();
+
+  if (data) {
+    document.getElementById("valor").innerText =
+      "USD → COP: " + data.valor;
+
+    document.getElementById("fecha").innerText =
+      "Actualizado: " + new Date(data.fecha).toLocaleString();
+  }
+}
+
+// ====== HISTORIAL ======
+async function obtenerHistorial() {
+  try {
+    const res = await fetch(API + "/history");
+    const data = await res.json();
+
+    const lista = document.getElementById("historial");
+    lista.innerHTML = "";
+
+    if (!Array.isArray(data)) {
+      console.error("❌ No es un array:", data);
+      return;
+    }
+
+    data.forEach(item => {
+      const li = document.createElement("li");
+      li.className = "list-group-item bg-dark text-white";
+
+      li.innerText =
+        `${item.valor} COP - ${new Date(item.fecha).toLocaleTimeString()}`;
+
+      lista.appendChild(li);
+    });
+
+  } catch (error) {
+    console.error("❌ Error frontend:", error);
+  }
+}
+
+// ====== ACTUALIZACIÓN AUTOMÁTICA ======
+function actualizar() {
+  obtenerUltimo();
+  obtenerHistorial();
+}
+
+setInterval(actualizar, 5000);
+actualizar();
+
+</script>
+
+</body>
+</html>
